@@ -1,10 +1,10 @@
 FROM node:18-slim
 
-# Install dependencies untuk Puppeteer
+# Install Chromium and required dependencies
 RUN apt-get update && apt-get install -y \
-    wget \
-    ca-certificates \
+    chromium \
     fonts-liberation \
+    fonts-noto-color-emoji \
     libappindicator3-1 \
     libasound2 \
     libatk-bridge2.0-0 \
@@ -29,11 +29,18 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies with updated npm flag
+RUN npm ci --omit=dev
 
 # Copy application code
 COPY . .
+
+# Set Puppeteer to use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+# Expose port
+EXPOSE 8080
 
 # Start bot
 CMD ["node", "index.js"]
